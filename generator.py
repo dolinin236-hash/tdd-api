@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -12,14 +11,13 @@ from faker import Faker
 # Field resolver mapping: type string -> faker method / custom logic
 # ---------------------------------------------------------------------------
 
-FIELD_RESOLVERS: Dict[str, List[str]] = {
+FIELD_RESOLVERS: Dict[str, List[Any]] = {
     "name": ["name"],
     "email": ["email"],
     "phone": ["phone_number"],
     "address": ["address"],
     "street_address": ["street_address"],
     "city": ["city"],
-    "state": ["state"],
     "country": ["country"],
     "zipcode": ["zipcode"],
     "postcode": ["zipcode"],
@@ -33,7 +31,6 @@ FIELD_RESOLVERS: Dict[str, List[str]] = {
     "word": ["word"],
     "number": ["random_int", 1, 999999],
     "integer": ["random_int", 1, 999999],
-    "float": ["random_float", 0, 99999, 2],
     "boolean": ["boolean"],
     "currency": ["currency_name"],
     "price": ["random_int", 1, 999999],
@@ -50,7 +47,7 @@ FIELD_RESOLVERS: Dict[str, List[str]] = {
     "product": ["product_name"],
     "category": ["product_category"],
     "tag": ["word"],
-    "username": ["username"],
+    "username": ["user_name"],
     "password": ["password"],
     "avatar": ["image_url"],
     "bio": ["text", 500],
@@ -88,7 +85,7 @@ def _resolve_faker(fake: Faker, field_type: str, *args: Any, **kwargs: Any) -> A
             try:
                 return method(*args, **kwargs)
             except Exception:
-                return fake.text(50)
+                return f"_{field_type}_value"
         return f"_{field_type}_value"
 
     method_name = resolver[0]
@@ -229,9 +226,18 @@ SCHEMA_DEFINITIONS = {
 }
 
 
-# Additional fields that need special handling
-SPECIAL_FIELDS = {
-    "date_of_birth": lambda fake: fake.date_of_birth(minimum_age=18, maximum_age=70),
+# ---------------------------------------------------------------------------
+# Special field generators — ALL use fake.random_int() (no random_float)
+# ---------------------------------------------------------------------------
+
+def _rminmax(fake: Faker, lo: int, hi: int, div: int = 1, dec: int = 2) -> Any:
+    """Generate a float from random_int: round(random_int(lo*div, hi*div)/div, dec)."""
+    return round(fake.random_int(lo * div, hi * div) / div, dec)
+
+
+SPECIAL_FIELDS: Dict[str, Any] = {
+    # Common
+    "date_of_birth": lambda fake: fake.date_of_birth(minimum_age=18, maximum_age=70).isoformat(),
     "is_active": lambda fake: fake.boolean(70),
     "in_stock": lambda fake: fake.boolean(80),
     "verified_purchase": lambda fake: fake.boolean(60),
@@ -239,9 +245,6 @@ SPECIAL_FIELDS = {
     "tags": lambda fake: [fake.word() for _ in range(fake.random_int(2, 5))],
     "category": lambda fake: fake.random_element(["Electronics", "Clothing", "Books", "Home", "Sports", "Toys", "Food", "Beauty", "Automotive", "Health"]),
     "department": lambda fake: fake.random_element(["Engineering", "Sales", "Marketing", "HR", "Finance", "Operations", "Support", "Legal", "Research"]),
-    "title": lambda fake: fake.random_element(
-        ["Junior", "Mid", "Senior", "Lead", "Principal", "Manager", "Director", "VP", "CTO", "CEO"]
-    ),
     "level": lambda fake: fake.random_element(["L3", "L4", "L5", "L6", "L7"]),
     "subscription_plan": lambda fake: fake.random_element(["free", "basic", "pro", "enterprise"]),
     "id": lambda fake: f"USR-{uuid.uuid4().hex[:12]}",
@@ -256,23 +259,175 @@ SPECIAL_FIELDS = {
     "posts_count": lambda fake: fake.random_int(0, 5000),
     "state": lambda fake: fake.random_element(["California", "New York", "Texas", "Florida", "Illinois", "Washington", "London", "Moscow", "Berlin", "Paris"]),
     "zipcode": lambda fake: fake.postcode(),
-    "transaction_id": lambda fake: f"TXN-{uuid.uuid4().hex[:12].upper()}",
-    "order_id": lambda fake: f"ORD-{fake.random_int(100000, 999999)}",
-    "sku": lambda fake: f"SKU-{uuid.uuid4().hex[:8].upper()}",
-    "vin": lambda fake: uuid.uuid4().hex[:17].upper(),
-    "license_plate": lambda fake: f"{fake.random_uppercase_letter()}{fake.random_uppercase_letter()}{fake.random_int(1000, 9999)}",
-    "credit_card_number": lambda fake: fake.credit_card_number(card_type=None),
-    "credit_card_expiry": lambda fake: fake.credit_card_expire(),
-    "products": lambda fake: [{"product_id": f"PRD-{uuid.uuid4().hex[:8]}", "name": fake.word().capitalize(), "quantity": fake.random_int(1, 5), "price": round(fake.random_int(10, 999), 2)} for _ in range(fake.random_int(1, 4))],
-    "items": lambda fake: [{"product_id": f"PRD-{uuid.uuid4().hex[:8]}", "name": fake.word().capitalize(), "quantity": fake.random_int(1, 3), "unit_price": round(fake.random_int(10, 500), 2)} for _ in range(fake.random_int(1, 5))],
-    "transactions": lambda fake: [{"transaction_id": f"TXN-{uuid.uuid4().hex[:8].upper()}", "type": fake.random_element(["deposit", "withdrawal", "transfer", "payment"]), "amount": round(fake.random_int(1000, 1000000) / 100, 2), "date": fake.past_date().isoformat()} for _ in range(fake.random_int(1, 5))],
-    "posts": lambda fake: [{"id": f"PST-{uuid.uuid4().hex[:6]}", "title": fake.sentence(), "body": fake.paragraph(), "likes": fake.random_int(0, 5000), "comments": fake.random_int(0, 200), "date": fake.past_date().isoformat()} for _ in range(fake.random_int(1, 10))],
-    "images": lambda fake: [fake.image_url() for _ in range(fake.random_int(1, 3))],
+
+    # Transactions
+    "type": lambda fake: fake.random_element(["deposit", "withdrawal", "transfer", "payment", "refund"]),
+    "amount": lambda fake: _rminmax(fake, 100, 1000000, 1, 2),
+    "status": lambda fake: fake.random_element(["completed", "pending", "failed", "cancelled", "processing"]),
+    "method": lambda fake: fake.random_element(["card", "bank_transfer", "crypto", "paypal", "cash", "mobile"]),
+    "description": lambda fake: fake.sentence(),
+    "timestamp": lambda fake: fake.past_datetime().isoformat(),
+    "reference": lambda fake: f"REF-{uuid.uuid4().hex[:10].upper()}",
+    "fee": lambda fake: _rminmax(fake, 50, 5000, 100, 2),
+    "balance_after": lambda fake: _rminmax(fake, 10000, 50000000, 100, 2),
+    "from_account": lambda fake: f"ACC-{uuid.uuid4().hex[:12].upper()}",
+    "to_account": lambda fake: f"ACC-{uuid.uuid4().hex[:12].upper()}",
+    "sender_name": lambda fake: fake.name(),
+    "receiver_name": lambda fake: fake.name(),
+
+    # Social media
+    "display_name": lambda fake: fake.name(),
+    "followers": lambda fake: fake.random_int(0, 1000000),
+    "following": lambda fake: fake.random_int(0, 100000),
+    "engagement_rate": lambda fake: _rminmax(fake, 10, 9500, 100, 2),
+    "hashtags": lambda fake: [f"#{fake.word()}" for _ in range(fake.random_int(1, 5))],
+    "likes_received": lambda fake: fake.random_int(0, 50000),
+    "comments_received": lambda fake: fake.random_int(0, 5000),
+    "user_id": lambda fake: f"USR-{uuid.uuid4().hex[:12]}",
+    "location": lambda fake: fake.city() + ", " + fake.country(),
+    "joined_date": lambda fake: fake.past_date().isoformat(),
+
+    # Banking
+    "account_type": lambda fake: fake.random_element(["checking", "savings", "credit", "investment"]),
+    "account_holder": lambda fake: fake.name(),
+    "balance": lambda fake: _rminmax(fake, 100000, 1000000000, 100, 2),
+    "credit_limit": lambda fake: _rminmax(fake, 100000, 50000000, 100, 2),
+    "interest_rate": lambda fake: _rminmax(fake, 100, 2500, 100, 2),
+    "routing_number": lambda fake: f"{fake.random_int(10000000, 99999999)}",
+    "branch": lambda fake: fake.company() + " Branch",
+    "branch_manager": lambda fake: fake.name(),
+    "loan_id": lambda fake: f"LN-{uuid.uuid4().hex[:10].upper()}",
+    "loan_amount": lambda fake: _rminmax(fake, 100000, 500000000, 100, 2),
+    "loan_type": lambda fake: fake.random_element(["personal", "mortgage", "auto", "student", "business"]),
+    "loan_status": lambda fake: fake.random_element(["active", "paid", "default", "pending"]),
+    "monthly_payment": lambda fake: _rminmax(fake, 10000, 1000000, 100, 2),
+    "debit_card_number": lambda fake: fake.credit_card_number(card_type=None),
+    "cvv": lambda fake: f"{fake.random_int(100, 999)}",
+    "pin": lambda fake: f"{fake.random_int(1000, 9999)}",
+    "iban": lambda fake: fake.iban(),
+    "swift_code": lambda fake: f"{fake.random_uppercase_letter()}{fake.random_uppercase_letter()}{fake.country()[:2].upper()}{fake.random_uppercase_letter()}{fake.random_uppercase_letter()}{fake.random_int(10, 99)}",
+    "emergency_contact": lambda fake: fake.name() + " - " + fake.phone_number(),
+
+    # Medical
+    "patient_id": lambda fake: f"PT-{uuid.uuid4().hex[:12].upper()}",
+    "patient_name": lambda fake: fake.name(),
+    "blood_type": lambda fake: fake.random_element(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]),
+    "height": lambda fake: fake.random_int(140, 210),
+    "weight": lambda fake: fake.random_int(40, 150),
+    "bmi": lambda fake: round(fake.random_int(160, 450) / 10, 1),
+    "blood_pressure": lambda fake: f"{fake.random_int(90, 180)}/{fake.random_int(60, 120)}",
+    "heart_rate": lambda fake: fake.random_int(50, 120),
+    "temperature": lambda fake: _rminmax(fake, 3550, 4000, 100, 1),
+    "diagnosis": lambda fake: fake.word().capitalize(),
     "medications": lambda fake: [fake.word() for _ in range(fake.random_int(1, 4))],
     "allergies": lambda fake: [fake.word() for _ in range(fake.random_int(0, 3))],
+    "doctor_name": lambda fake: fake.name(),
+    "admission_date": lambda fake: fake.past_date().isoformat(),
+    "discharge_date": lambda fake: fake.future_date().isoformat(),
+    "insurance_id": lambda fake: f"INS-{uuid.uuid4().hex[:10].upper()}",
+
+    # Vehicles
+    "make": lambda fake: fake.random_element(["Toyota", "Honda", "Ford", "BMW", "Mercedes", "Nissan", "Chevrolet", "Hyundai"]),
+    "model": lambda fake: fake.random_element(["Camry", "Civic", "F-150", "3 Series", "E-Class", "Altima", "Silverado"]),
+    "year": lambda fake: fake.random_int(2015, 2026),
+    "color": lambda fake: fake.color_name(),
+    "body_type": lambda fake: fake.random_element(["Sedan", "SUV", "Hatchback", "Truck", "Coupe", "Van"]),
+    "fuel_type": lambda fake: fake.random_element(["gasoline", "diesel", "electric", "hybrid"]),
+    "transmission": lambda fake: fake.random_element(["automatic", "manual", "cvt"]),
+    "engine_size": lambda fake: round(fake.random_int(100, 600) / 100, 1),
+    "horsepower": lambda fake: fake.random_int(100, 600),
+    "mileage": lambda fake: fake.random_int(0, 200000),
+    "owner_name": lambda fake: fake.name(),
+    "registration_date": lambda fake: fake.past_date().isoformat(),
+    "insurance_type": lambda fake: fake.random_element(["liability", "comprehensive", "collision", "full"]),
+    "vin": lambda fake: uuid.uuid4().hex[:17].upper(),
+
+    # Employees
+    "first_name": lambda fake: fake.first_name(),
+    "last_name": lambda fake: fake.last_name(),
+    "full_name": lambda fake: fake.name(),
+    "salary": lambda fake: fake.random_int(30000, 200000),
+    "hire_date": lambda fake: fake.past_date().isoformat(),
+    "termination_date": lambda fake: fake.future_date().isoformat(),
+    "manager": lambda fake: fake.name(),
+    "performance_score": lambda fake: round(fake.random_int(100, 500) / 100, 1),
+    "years_of_service": lambda fake: fake.random_int(0, 35),
+    "education": lambda fake: fake.random_element(["High School", "Bachelor", "Master", "PhD", "MBA"]),
     "skills": lambda fake: [fake.word() for _ in range(fake.random_int(3, 8))],
-    "variations": lambda fake: [{"size": fake.random_element(["S", "M", "L", "XL"]), "color": fake.color_name(), "price": round(fake.random_int(10, 500), 2)} for _ in range(fake.random_int(2, 4))],
+    "title": lambda fake: fake.random_element(["Junior", "Mid", "Senior", "Lead", "Principal", "Manager", "Director", "VP", "CTO", "CEO"]),
+
+    # Orders
+    "order_id": lambda fake: f"ORD-{fake.random_int(100000, 999999)}",
+    "order_status": lambda fake: fake.random_element(["pending", "processing", "shipped", "delivered", "cancelled"]),
+    "customer_id": lambda fake: f"CUST-{uuid.uuid4().hex[:12]}",
+    "customer_name": lambda fake: fake.name(),
+    "customer_email": lambda fake: fake.email(),
+    "items": lambda fake: [{"product_id": f"PRD-{uuid.uuid4().hex[:8]}", "name": fake.word().capitalize(), "quantity": fake.random_int(1, 3), "unit_price": round(fake.random_int(1000, 50000) / 100, 2)} for _ in range(fake.random_int(1, 5))],
+    "subtotal": lambda fake: _rminmax(fake, 1000, 50000, 100, 2),
+    "tax": lambda fake: _rminmax(fake, 100, 10000, 100, 2),
+    "shipping": lambda fake: _rminmax(fake, 500, 5000, 100, 2),
+    "total": lambda fake: _rminmax(fake, 2000, 100000, 100, 2),
+    "payment_method": lambda fake: fake.random_element(["credit_card", "debit_card", "bank_transfer", "crypto", "paypal"]),
+    "shipping_method": lambda fake: fake.random_element(["standard", "express", "overnight", "economy"]),
+    "tracking_number": lambda fake: f"TRK-{uuid.uuid4().hex[:14].upper()}",
+    "shipping_address": lambda fake: fake.address(),
+    "billing_address": lambda fake: fake.address(),
+    "notes": lambda fake: fake.sentence(),
+
+    # Products
+    "name": lambda fake: fake.word().capitalize(),
+    "description": lambda fake: fake.paragraph(),
+    "compare_at_price": lambda fake: _rminmax(fake, 1000, 100000, 100, 2),
+    "cost": lambda fake: _rminmax(fake, 100, 10000, 100, 2),
+    "weight": lambda fake: _rminmax(fake, 10, 5000, 100, 2),
+    "sku": lambda fake: f"SKU-{uuid.uuid4().hex[:8].upper()}",
+    "barcode": lambda fake: f"978-{uuid.uuid4().hex[:12]}",
+    "brand": lambda fake: fake.company(),
+    "manufacturer": lambda fake: fake.company(),
+    "rating": lambda fake: round(fake.random_int(100, 500) / 100, 1),
+    "reviews_count": lambda fake: fake.random_int(0, 10000),
+    "stock_quantity": lambda fake: fake.random_int(0, 5000),
+    "supplier": lambda fake: fake.company(),
+    "warehouse_location": lambda fake: f"Aisle-{fake.random_int(1,50)}-Shelf-{fake.random_int(1,20)}",
+    "images": lambda fake: [fake.image_url() for _ in range(fake.random_int(1, 3))],
     "variants": lambda fake: [{"size": fake.random_element(["S", "M", "L", "XL", "XXL"]), "color": fake.color_name(), "stock": fake.random_int(0, 100)} for _ in range(fake.random_int(2, 4))],
+
+    # Reviews
+    "user_name": lambda fake: fake.name(),
+    "product_id": lambda fake: f"PRD-{uuid.uuid4().hex[:8]}",
+    "product_name": lambda fake: fake.word().capitalize(),
+    "rating": lambda fake: fake.random_int(1, 5),
+    "title_review": lambda fake: fake.sentence(),
+    "body": lambda fake: fake.paragraph(),
+    "helpful_count": lambda fake: fake.random_int(0, 5000),
+    "unhelpful_count": lambda fake: fake.random_int(0, 500),
+    "response": lambda fake: fake.sentence() if fake.boolean(30) else None,
+    "id_review": lambda fake: f"REV-{uuid.uuid4().hex[:12].upper()}",
+
+    # Addresses
+    "street": lambda fake: fake.street_address(),
+    "full_address": lambda fake: fake.address(),
+    "address_type": lambda fake: fake.random_element(["home", "work", "shipping", "billing"]),
+    "company_name": lambda fake: fake.company(),
+    "apartment": lambda fake: f"Apt {fake.random_int(1, 500)}",
+    "floor": lambda fake: fake.random_int(1, 50),
+    "building": lambda fake: f"Building {fake.random_int(1, 100)}",
+    "id_addr": lambda fake: f"ADR-{uuid.uuid4().hex[:12]}",
+
+    # Ecommerce
+    "customer_phone": lambda fake: fake.phone_number(),
+    "customer_address": lambda fake: fake.address(),
+    "customer_city": lambda fake: fake.city(),
+    "customer_country": lambda fake: fake.country(),
+    "product_price": lambda fake: _rminmax(fake, 1000, 50000, 100, 2),
+    "quantity": lambda fake: fake.random_int(1, 10),
+    "order_status_ecom": lambda fake: fake.random_element(["pending", "processing", "shipped", "delivered", "cancelled"]),
+    "discount": lambda fake: _rminmax(fake, 0, 5000, 100, 2),
+    "review_text": lambda fake: fake.paragraph(),
+    "rating_ecom": lambda fake: fake.random_int(1, 5),
+
+    # Products helper
+    "price": lambda fake: _rminmax(fake, 100, 50000, 100, 2),
 }
 
 
@@ -286,10 +441,6 @@ class DataGenerator:
         if locale not in self._fakers:
             self._fakers[locale] = Faker(locale)
         return self._fakers[locale]
-
-    # ------------------------------------------------------------------
-    # Core generation
-    # ------------------------------------------------------------------
 
     def generate(
         self,
@@ -310,14 +461,17 @@ class DataGenerator:
             schema = SCHEMA_DEFINITIONS.get(schema_type)
             if not schema:
                 # Fallback: random fields
-                fields = self._random_fields(fake, count)
+                all_special = list(SPECIAL_FIELDS.keys())
+                all_resolver = list(FIELD_RESOLVERS.keys())
+                pool = all_special + all_resolver
+                fields = [fake.random_element(pool) for _ in range(count)]
             else:
                 fields = schema["fields"]
 
-            if include_fields:
-                fields = [f for f in fields if f in include_fields]
-            if exclude_fields:
-                fields = [f for f in fields if f not in exclude_fields]
+                if include_fields:
+                    fields = [f for f in fields if f in include_fields]
+                if exclude_fields:
+                    fields = [f for f in fields if f not in exclude_fields]
 
         records: List[Dict[str, Any]] = []
         for _ in range(count):
@@ -325,10 +479,6 @@ class DataGenerator:
             records.append(record)
 
         return records
-
-    # ------------------------------------------------------------------
-    # Single record
-    # ------------------------------------------------------------------
 
     def _generate_record(
         self,
@@ -350,19 +500,6 @@ class DataGenerator:
                 record[field] = _resolve_faker(fake, field)
 
         return record
-
-    # ------------------------------------------------------------------
-    # Random fields fallback
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _random_fields(fake: Faker, count: int) -> List[str]:
-        all_fields = list(SPECIAL_FIELDS.keys())
-        return [fake.random_element(all_fields) for _ in range(count)]
-
-    # ------------------------------------------------------------------
-    # Schema info
-    # ------------------------------------------------------------------
 
     @classmethod
     def get_available_schemas(cls) -> List[Dict[str, Any]]:
