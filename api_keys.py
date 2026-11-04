@@ -14,7 +14,7 @@ PAYMENTS_FILE = Path(__file__).parent / "payments_db.json"
 # NowPayments configuration
 NOWPAYMENTS_API_KEY = os.environ.get("NOWPAYMENTS_API_KEY", "")
 NOWPAYMENTS_IPN_SECRET = os.environ.get("NOWPAYMENTS_IPN_SECRET", "")
-PAYMENT_ADDRESS = os.environ.get("PAYMENT_ADDRESS", "TRC20_USDT")  # TRC20 USDT default
+PAYMENT_ADDRESS = os.environ.get("PAYMENT_ADDRESS", "TFCx2da9FiVX1o7HMcPdKGMsaXpwAWsmWx")  # USDT TRC20
 
 # Pricing (in USD)
 FREE_DAILY_LIMIT = 100
