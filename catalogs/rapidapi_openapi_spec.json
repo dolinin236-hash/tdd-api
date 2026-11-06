@@ -1,0 +1,335 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Test Data Generator API",
+    "version": "4.0.0",
+    "description": "Test Data Generator API is a powerful, production-ready REST API for generating realistic, customizable test datasets. Perfect for development, QA testing, machine learning training, and demo environments.\n\nFeatures:\n- 12 pre-built schemas (Users, Transactions, Products, Orders, Medical Records, Banking, and more)\n- 10+ locales (en_US, ru_RU, de_DE, fr_FR, ja_JP, zh_CN, and more)\n- Custom field definitions\n- Bulk generation support\n- API key-based authentication\n- Freemium pricing (100 free requests/day)\n- Crypto payments accepted (USDT TRC20)\n\nUse cases:\n- Fill databases for development and staging\n- Generate QA test data with realistic internationalization\n- Create ML training datasets\n- Populate demo applications\n- Seed e-commerce, banking, and healthcare test environments",
+    "contact": {
+      "name": "dolinin236-hash",
+      "email": "support@tdg-api.com",
+      "url": "https://tdd-api-4daf.onrender.com"
+    }
+  },
+  "externalDocs": {
+    "url": "https://tdd-api-4daf.onrender.com/docs"
+  },
+  "servers": [
+    {
+      "url": "https://tdd-api-4daf.onrender.com",
+      "description": "Production"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "operationId": "healthCheck",
+        "tags": [
+          "Public"
+        ],
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/schemas": {
+      "get": {
+        "summary": "List available schemas",
+        "operationId": "listSchemas",
+        "tags": [
+          "Public"
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available schemas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "available_schemas": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/register": {
+      "post": {
+        "summary": "Register for free API key",
+        "operationId": "registerApiKey",
+        "tags": [
+          "Authentication"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API key created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "api_key": {
+                      "type": "string"
+                    },
+                    "tier": {
+                      "type": "string"
+                    },
+                    "daily_limit": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generate": {
+      "post": {
+        "summary": "Generate test data",
+        "operationId": "generateData",
+        "tags": [
+          "Generation"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "schema_type",
+                  "count",
+                  "locale"
+                ],
+                "properties": {
+                  "schema_type": {
+                    "type": "string",
+                    "enum": [
+                      "users",
+                      "transactions",
+                      "products",
+                      "orders",
+                      "reviews",
+                      "employees",
+                      "addresses",
+                      "vehicles",
+                      "medical_records",
+                      "social_media",
+                      "ecommerce",
+                      "banking"
+                    ],
+                    "description": "Data schema to generate"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10000,
+                    "description": "Number of records"
+                  },
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "en_US",
+                      "en_GB",
+                      "ru_RU",
+                      "de_DE",
+                      "fr_FR",
+                      "es_ES",
+                      "ja_JP",
+                      "zh_CN",
+                      "pt_BR",
+                      "ko_KR"
+                    ],
+                    "description": "Localization"
+                  },
+                  "include_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "exclude_fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "fields": {
+                    "type": "object",
+                    "description": "Custom field definitions"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generated data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schema_type": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "integer"
+                    },
+                    "locale": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array"
+                    },
+                    "generated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "request_id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generate/bulk": {
+      "post": {
+        "summary": "Bulk generate test data",
+        "operationId": "bulkGenerate",
+        "tags": [
+          "Generation"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "requests"
+                ],
+                "properties": {
+                  "requests": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "schema_type": {
+                          "type": "string"
+                        },
+                        "count": {
+                          "type": "integer"
+                        },
+                        "locale": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk generated data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array"
+                    },
+                    "total_records": {
+                      "type": "integer"
+                    },
+                    "generated_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    }
+  }
+}

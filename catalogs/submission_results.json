@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-11-06T07:08:23.457057+00:00",
+  "total": 5,
+  "summary": {
+    "submitted": 0,
+    "manual_needed": 3,
+    "unreachable": 1,
+    "error": 1
+  },
+  "results": [
+    {
+      "catalog": "API List (apilist.fun)",
+      "status": "manual_needed",
+      "submit_url": "https://apilist.fun/submit-api",
+      "instructions": "📋 Инструкция по регистрации на API List (apilist.fun):\n\n1. Перейдите: https://apilist.fun/submit-api\n\n2. Заполните поля:\n   • Название:     Test Data Generator API\n   • Слоган:       Generate realistic test datasets instantly. 12+ schemas, 10+ locales, custom fields.\n   • Описание:     Generate realistic test datasets. 12 schemas, 10+ locales, custom fields. Free tier available.\n   • URL:          https://tdd-api-4daf.onrender.com\n   • Docs URL:     https://tdd-api-4daf.onrender.com/docs\n   • GitHub:       https://github.com/dolinin236-hash/tdd-api\n   • Email:        support@tdg-api.com\n   • Категория:    development tools\n   • Теги:         test-data, mock-data, faker, fake-data, development\n   • Тариф:        freemium\n   • Auth:         API Key (X-API-Key header)\n\n3. Отправьте форму и проверьте email для верификации."
+    },
+    {
+      "catalog": "SaaSHub (бывший Capterra Gateway)",
+      "status": "manual_needed",
+      "submit_url": "https://www.saashub.com/submit",
+      "instructions": "📋 Инструкция по регистрации на SaaSHub (бывший Capterra Gateway):\n\n1. Перейдите: https://www.saashub.com/submit\n\n2. Заполните поля:\n   • Название:     Test Data Generator API\n   • Слоган:       Generate realistic test datasets instantly. 12+ schemas, 10+ locales, custom fields.\n   • Описание:     Generate realistic test datasets. 12 schemas, 10+ locales, custom fields. Free tier available.\n   • URL:          https://tdd-api-4daf.onrender.com\n   • Docs URL:     https://tdd-api-4daf.onrender.com/docs\n   • GitHub:       https://github.com/dolinin236-hash/tdd-api\n   • Email:        support@tdg-api.com\n   • Категория:    development tools\n   • Теги:         test-data, mock-data, faker, fake-data, development\n   • Тариф:        freemium\n   • Auth:         API Key (X-API-Key header)\n\n3. Отправьте форму и проверьте email для верификации."
+    },
+    {
+      "catalog": "AlternativeTo",
+      "status": "unreachable",
+      "submit_url": "https://www.alternativeto.net/about/submit-a-product"
+    },
+    {
+      "catalog": "BetaList",
+      "status": "error",
+      "error": "HTTPSConnectionPool(host='betalist.com', port=443): Read timed out."
+    },
+    {
+      "catalog": "DevTools",
+      "status": "manual_needed",
+      "submit_url": "https://devtol.rs/submit",
+      "instructions": "📋 Инструкция по регистрации на DevTools:\n\n1. Перейдите: https://devtol.rs/submit\n\n2. Заполните поля:\n   • Название:     Test Data Generator API\n   • Слоган:       Generate realistic test datasets instantly. 12+ schemas, 10+ locales, custom fields.\n   • Описание:     Generate realistic test datasets. 12 schemas, 10+ locales, custom fields. Free tier available.\n   • URL:          https://tdd-api-4daf.onrender.com\n   • Docs URL:     https://tdd-api-4daf.onrender.com/docs\n   • GitHub:       https://github.com/dolinin236-hash/tdd-api\n   • Email:        support@tdg-api.com\n   • Категория:    development tools\n   • Теги:         test-data, mock-data, faker, fake-data, development\n   • Тариф:        freemium\n   • Auth:         API Key (X-API-Key header)\n\n3. Отправьте форму и проверьте email для верификации."
+    }
+  ]
+}

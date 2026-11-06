@@ -1,0 +1,32 @@
+# ============================================================================
+# Render Blueprint — Test Data Generator API v4.0
+# ============================================================================
+
+services:
+  - type: web
+    name: tdd-api
+    env: python
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.0
+      - key: TDG_APP_VERSION
+        value: "4.0.0"
+      - key: TDG_DEFAULT_LOCALE
+        value: en_US
+      - key: TDG_MAX_GENERATION_COUNT
+        value: "10000"
+      - key: TDG_LOG_LEVEL
+        value: INFO
+      - key: PAYMENT_ADDRESS
+        sync: false
+      - key: NOWPAYMENTS_API_KEY
+        sync: false
+      - key: NOWPAYMENTS_IPN_SECRET
+        sync: false
+      - key: SERVER_URL
+        value: https://tdd-api-4daf.onrender.com

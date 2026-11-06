@@ -1,0 +1,139 @@
+{
+  "name": "Test Data Generator API",
+  "tagline": "Generate realistic test datasets instantly. 12+ schemas, 10+ locales, custom fields.",
+  "description": "Test Data Generator API is a powerful, production-ready REST API for generating realistic, customizable test datasets. Perfect for development, QA testing, machine learning training, and demo environments.\n\nFeatures:\n- 12 pre-built schemas (Users, Transactions, Products, Orders, Medical Records, Banking, and more)\n- 10+ locales (en_US, ru_RU, de_DE, fr_FR, ja_JP, zh_CN, and more)\n- Custom field definitions\n- Bulk generation support\n- API key-based authentication\n- Freemium pricing (100 free requests/day)\n- Crypto payments accepted (USDT TRC20)\n\nUse cases:\n- Fill databases for development and staging\n- Generate QA test data with realistic internationalization\n- Create ML training datasets\n- Populate demo applications\n- Seed e-commerce, banking, and healthcare test environments",
+  "short_description": "Generate realistic test datasets. 12 schemas, 10+ locales, custom fields. Free tier available.",
+  "url": "https://tdd-api-4daf.onrender.com",
+  "base_url": "https://tdd-api-4daf.onrender.com",
+  "api_base_url": "https://tdd-api-4daf.onrender.com",
+  "docs_url": "https://tdd-api-4daf.onrender.com/docs",
+  "swagger_url": "https://tdd-api-4daf.onrender.com/docs",
+  "openapi_url": "https://tdd-api-4daf.onrender.com/openapi.json",
+  "github_url": "https://github.com/dolinin236-hash/tdd-api",
+  "logo_url": "https://tdd-api-4daf.onrender.com/static/logo.png",
+  "author": {
+    "name": "dolinin236-hash",
+    "email": "support@tdg-api.com"
+  },
+  "pricing_model": "freemium",
+  "pricing": {
+    "free_tier": {
+      "name": "Starter",
+      "price": 0,
+      "currency": "USD",
+      "period": "monthly",
+      "requests_per_day": 100,
+      "features": ["12 schemas", "10+ locales", "Custom fields"]
+    },
+    "growth_tier": {
+      "name": "Growth",
+      "price": 99,
+      "currency": "USD",
+      "period": "monthly",
+      "requests_per_month": 200000,
+      "features": ["Bulk generation", "Priority support", "No daily limit"]
+    },
+    "enterprise_tier": {
+      "name": "Enterprise",
+      "price": 299,
+      "currency": "USD",
+      "period": "monthly",
+      "requests_per_month": -1,
+      "features": ["Unlimited requests", "99.99% SLA", "Dedicated support", "Custom schemas"]
+    }
+  },
+  "authentication": "API Key (X-API-Key header)",
+  "auth_type": "apikey",
+  "auth_in": "header",
+  "auth_name": "X-API-Key",
+  "formats": ["JSON"],
+  "categories": [
+    "development tools",
+    "data generation",
+    "testing",
+    "mock data",
+    "qa tools",
+    "developer tools"
+  ],
+  "tags": [
+    "test-data",
+    "mock-data",
+    "faker",
+    "fake-data",
+    "development",
+    "qa",
+    "testing",
+    "data-generator",
+    "random-data",
+    "api-testing"
+  ],
+  "languages_supported": [
+    "Python",
+    "JavaScript",
+    "Java",
+    "C#",
+    "Go",
+    "PHP",
+    "Ruby",
+    "Rust"
+  ],
+  "schema_types": [
+    "users",
+    "transactions",
+    "products",
+    "orders",
+    "reviews",
+    "employees",
+    "addresses",
+    "vehicles",
+    "medical_records",
+    "social_media",
+    "ecommerce",
+    "banking"
+  ],
+  "locales": [
+    "en_US", "en_GB", "ru_RU", "de_DE", "fr_FR", "es_ES",
+    "ja_JP", "zh_CN", "pt_BR", "ko_KR"
+  ],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/",
+      "summary": "Landing page"
+    },
+    {
+      "method": "POST",
+      "path": "/register",
+      "summary": "Register for free API key"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "summary": "Health check",
+      "public": true
+    },
+    {
+      "method": "GET",
+      "path": "/schemas",
+      "summary": "List available schemas",
+      "public": true
+    },
+    {
+      "method": "POST",
+      "path": "/generate",
+      "summary": "Generate test data",
+      "protected": true
+    },
+    {
+      "method": "POST",
+      "path": "/generate/bulk",
+      "summary": "Bulk generate test data",
+      "protected": true
+    }
+  ],
+  "code_examples": {
+    "python": "import requests\n\nheaders = {\"X-API-Key\": \"YOUR_KEY\"}\ndata = {\n    \"schema_type\": \"users\",\n    \"count\": 10,\n    \"locale\": \"ru_RU\"\n}\n\nresponse = requests.post(\n    \"https://tdd-api-4daf.onrender.com/generate\",\n    json=data,\n    headers=headers\n)\nprint(response.json()[\"data\"][0][\"name\"])",
+    "javascript": "fetch('https://tdd-api-4daf.onrender.com/generate', {\n  method: 'POST',\n  headers: {\n    'Content-Type': 'application/json',\n    'X-API-Key': 'YOUR_KEY'\n  },\n  body: JSON.stringify({\n    schema_type: 'users',\n    count: 10,\n    locale: 'en_US'\n  })\n}).then(r => r.json())\n.then(data => console.log(data.data[0].name));",
+    "curl": "curl -X POST https://tdd-api-4daf.onrender.com/generate \\\n  -H \"Content-Type: application/json\" \\\n  -H \"X-API-Key: YOUR_KEY\" \\\n  -d '{\"schema_type\": \"users\", \"count\": 10, \"locale\": \"ru_RU\"}'"
+  }
+}

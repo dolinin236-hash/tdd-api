@@ -11,3 +11,5 @@ coverage.xml
 .pytest_cache/
 .mypy_cache/
 htmlcov/
+api_keys_db.json
+payments_db.json

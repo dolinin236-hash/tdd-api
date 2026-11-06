@@ -5,7 +5,7 @@ from functools import lru_cache
 class Settings(BaseSettings):
     # API
     APP_NAME: str = "Test Data Generator API"
-    APP_VERSION: str = "2.0.0"
+    APP_VERSION: str = "4.0.0"
     DEBUG: bool = False
 
     # Server
