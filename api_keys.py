@@ -1,12 +1,13 @@
-"""API Key management system with crypto payment integration."""
+"""API Key & Subscription management system with crypto payment integration."""
 
 import os
 import json
 import secrets
 import threading
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+from enum import Enum
 
 KEYS_FILE = Path(__file__).parent / "api_keys_db.json"
 PAYMENTS_FILE = Path(__file__).parent / "payments_db.json"
@@ -16,13 +17,19 @@ NOWPAYMENTS_API_KEY = os.environ.get("NOWPAYMENTS_API_KEY", "")
 NOWPAYMENTS_IPN_SECRET = os.environ.get("NOWPAYMENTS_IPN_SECRET", "")
 PAYMENT_ADDRESS = os.environ.get("PAYMENT_ADDRESS", "TFCx2da9FiVX1o7HMcPdKGMsaXpwAWsmWx")  # USDT TRC20
 
-# Pricing (in USD)
+# Pricing & Limits
 FREE_DAILY_LIMIT = 100
-PREMIUM_PRICE_USD = 5.0  # $5 for unlimited access
+GROWTH_MONTHLY_LIMIT = 200_000
+ENTERPRISE_MONTHLY_LIMIT = -1  # Unlimited
+
+class SubscriptionTier(Enum):
+    FREE = "free"
+    GROWTH = "growth"
+    ENTERPRISE = "enterprise"
 
 
 class APIKeyStore:
-    """File-based API key storage (JSON file). No external DB needed."""
+    """File-based API key and subscription storage."""
 
     def __init__(self, keys_file: Path = KEYS_FILE):
         self.keys_file = keys_file
@@ -46,7 +53,7 @@ class APIKeyStore:
         self,
         email: Optional[str] = None,
         tier: str = "free",
-        custom_limit: Optional[int] = None,
+        daily_limit: Optional[int] = None,
     ) -> Tuple[str, Dict[str, Any]]:
         """Create a new API key."""
         key = f"tdg_{secrets.token_urlsafe(32)}"
@@ -57,9 +64,11 @@ class APIKeyStore:
             "email": email,
             "tier": tier,
             "created_at": now.isoformat(),
-            "expires_at": None,
-            "daily_limit": custom_limit or (FREE_DAILY_LIMIT if tier == "free" else -1),
+            "subscribed_until": None,
+            "daily_limit": daily_limit or FREE_DAILY_LIMIT,
+            "monthly_limit": GROWTH_MONTHLY_LIMIT if tier == "growth" else ENTERPRISE_MONTHLY_LIMIT,
             "requests_today": 0,
+            "requests_this_month": 0,
             "last_request": None,
             "total_requests": 0,
             "is_active": True,
@@ -81,14 +90,17 @@ class APIKeyStore:
 
         now = datetime.now(timezone.utc)
 
-        # Check expiry
-        if entry.get("expires_at"):
-            expires = datetime.fromisoformat(entry["expires_at"])
+        # Check subscription expiry
+        if entry.get("subscribed_until"):
+            expires = datetime.fromisoformat(entry["subscribed_until"])
             if expires < now:
-                entry["is_active"] = False
+                # Downgrade to free if subscription expired
+                entry["tier"] = "free"
+                entry["subscribed_until"] = None
+                entry["monthly_limit"] = None
+                entry["daily_limit"] = FREE_DAILY_LIMIT
                 with self._lock:
                     self._save()
-                return False, None
 
         # Reset daily counter if new day
         if entry.get("last_request"):
@@ -96,7 +108,7 @@ class APIKeyStore:
             if last.date() != now.date():
                 entry["requests_today"] = 0
 
-        # Check rate limit
+        # Check daily rate limit
         daily_limit = entry.get("daily_limit", FREE_DAILY_LIMIT)
         if daily_limit > 0 and entry["requests_today"] >= daily_limit:
             return False, entry
@@ -104,6 +116,7 @@ class APIKeyStore:
         # Increment counter
         with self._lock:
             entry["requests_today"] = entry.get("requests_today", 0) + 1
+            entry["requests_this_month"] = entry.get("requests_this_month", 0) + 1
             entry["total_requests"] = entry.get("total_requests", 0) + 1
             entry["last_request"] = now.isoformat()
             self._save()
@@ -114,16 +127,23 @@ class APIKeyStore:
         """Get key information."""
         return self._data["keys"].get(key)
 
-    def upgrade_key(self, key: str) -> bool:
-        """Upgrade a key to premium (unlimited)."""
+    def upgrade_key(self, key: str, tier: str = "growth") -> bool:
+        """Upgrade a key to a subscription tier."""
         with self._lock:
             entry = self._data["keys"].get(key)
             if entry:
-                entry["tier"] = "premium"
-                entry["daily_limit"] = -1
-                entry["expires_at"] = (
-                    datetime.now(timezone.utc) + timedelta(days=30)
+                entry["tier"] = tier
+                entry["subscribed_until"] = (
+                    datetime.now(timezone.utc) + __import__("datetime").timedelta(days=30)
                 ).isoformat()
+                
+                if tier == "growth":
+                    entry["monthly_limit"] = GROWTH_MONTHLY_LIMIT
+                    entry["daily_limit"] = -1  # Unlimited daily for growth
+                elif tier == "enterprise":
+                    entry["monthly_limit"] = ENTERPRISE_MONTHLY_LIMIT
+                    entry["daily_limit"] = -1
+
                 self._save()
                 return True
         return False
@@ -131,7 +151,6 @@ class APIKeyStore:
     def list_keys(self) -> List[Dict[str, Any]]:
         """List all keys (admin only)."""
         return list(self._data["keys"].values())
-
 
 # Singleton instance
 key_store = APIKeyStore()
@@ -163,6 +182,7 @@ class PaymentStore:
         payment_id: str,
         email: str,
         api_key: str,
+        tier: str,
         amount: float,
         currency: str,
         status: str,
@@ -172,6 +192,7 @@ class PaymentStore:
                 "payment_id": payment_id,
                 "email": email,
                 "api_key": api_key,
+                "tier": tier,
                 "amount": amount,
                 "currency": currency,
                 "status": status,
@@ -179,17 +200,13 @@ class PaymentStore:
             })
             self._save()
 
-    def get_payment(self, payment_id: str) -> Optional[Dict[str, Any]]:
-        for p in self._data["payments"]:
-            if p["payment_id"] == payment_id:
-                return p
-        return None
-
     def mark_paid(self, payment_id: str) -> None:
         with self._lock:
             for p in self._data["payments"]:
                 if p["payment_id"] == payment_id:
                     p["status"] = "paid"
+                    # Automatically activate subscription
+                    key_store.upgrade_key(p["api_key"], p.get("tier", "growth"))
                     break
             self._save()
 
@@ -200,8 +217,9 @@ payment_store = PaymentStore()
 def create_payment_link(
     email: str,
     api_key: str,
-    amount: float = PREMIUM_PRICE_USD,
+    amount: float = 99.0,
     currency: str = "usdt",
+    tier: str = "growth",
 ) -> Dict[str, Any]:
     """Create a NowPayments crypto payment link."""
     if not NOWPAYMENTS_API_KEY:
@@ -211,12 +229,14 @@ def create_payment_link(
             "address": PAYMENT_ADDRESS,
             "amount": amount,
             "currency": currency,
-            "email": email,
+            "tier": tier,
             "message": (
-                f"Отправьте {amount} USDT (TRC20) на адрес:\n"
-                f"{PAYMENT_ADDRESS}\n\n"
-                f"После оплаты напишите на email или в Telegram — "
-                f"активируем ваш ключ навсегда."
+                f"💰 Для получения тарифа {tier.upper()} отправьте:\n\n"
+                f"Сумма: {amount} {currency}\n"
+                f"Сеть: TRC20 (Tron)\n"
+                f"Адрес: {PAYMENT_ADDRESS}\n\n"
+                f"📧 После оплаты напишите на support@tdg-api.com — "
+                f"активируем ваш ключ автоматически."
             ),
         }
 
@@ -227,9 +247,9 @@ def create_payment_link(
             "price_amount": amount,
             "price_currency": "usd",
             "pay_currency": currency,
-            "order_id": f"tdg_{secrets.token_urlsafe(16)}",
+            "order_id": f"tdg_{tier}_{secrets.token_urlsafe(16)}",
             "ipn_callback_url": f"{os.environ.get('SERVER_URL', '')}/webhook/payment",
-            "success_url": f"{os.environ.get('SERVER_URL', '')}/payment/success",
+            "metadata": {"api_key": api_key, "tier": tier},
         }
 
         headers = {
@@ -246,12 +266,11 @@ def create_payment_link(
 
         if response.status_code == 200:
             data = response.json()
-            payment_record = data.get("invoice_url", "")
-
             payment_store.add_payment(
                 payment_id=data.get("pay_id", ""),
                 email=email,
                 api_key=api_key,
+                tier=tier,
                 amount=amount,
                 currency=currency,
                 status="pending",
@@ -259,40 +278,29 @@ def create_payment_link(
 
             return {
                 "manual": False,
-                "payment_url": payment_record,
+                "payment_url": data.get("invoice_url", ""),
                 "amount": amount,
                 "currency": currency,
+                "tier": tier,
                 "order_id": data.get("order_id"),
             }
     except Exception:
         pass
 
     # Fallback to manual
-    return create_payment_link_manual(email, api_key, amount, currency)
-
-
-def create_payment_link_manual(
-    email: str,
-    api_key: str,
-    amount: float = PREMIUM_PRICE_USD,
-    currency: str = "USDT",
-) -> Dict[str, Any]:
-    """Manual crypto payment (address-based)."""
     return {
         "manual": True,
         "address": PAYMENT_ADDRESS,
         "amount": amount,
         "currency": currency,
-        "email": email,
+        "tier": tier,
         "message": (
-            f"💰 Для получения Premium ключа отправьте:\n\n"
+            f"💰 Для получения тарифа {tier.upper()} отправьте:\n\n"
             f"Сумма: {amount} {currency}\n"
             f"Сеть: TRC20 (Tron)\n"
             f"Адрес: {PAYMENT_ADDRESS}\n\n"
-            f"📧 После оплаты напишите на support@tdg-api.com "
-            f"или в @TDDAPI_BOT (укажите ваш email "
-            f"и tx-hash транзакции)\n\n"
-            f"⚡ Активация в течение 1 часа"
+            f"📧 После оплаты напишите на support@tdg-api.com — "
+            f"активируем ваш ключ автоматически."
         ),
     }
 
@@ -300,34 +308,18 @@ def create_payment_link_manual(
 # Webhook handler for NowPayments IPN
 def handle_payment_webhook(payload: Dict[str, Any]) -> Dict[str, Any]:
     """Handle NowPayments IPN webhook."""
-    if not NOWPAYMENTS_API_KEY:
-        return {"status": "skipped", "reason": "no_api_key"}
+    if payload.get("type") == "payment_finished":
+        payment_id = payload.get("payment_id", "")
+        # The tier and api_key are stored in metadata
+        metadata = payload.get("metadata", {})
+        api_key = metadata.get("api_key", "")
+        tier = metadata.get("tier", "growth")
 
-    try:
-        import hashlib
-        import hmac
+        if payment_id:
+            payment_store.mark_paid(payment_id)
+            if api_key:
+                key_store.upgrade_key(api_key, tier)
 
-        ipn_secret = NOWPAYMENTS_IPN_SECRET
-        body = json.dumps(payload, separators=(",", ":"))
+        return {"status": "success"}
 
-        # Verify signature
-        signature = hmac.new(
-            ipn_secret.encode(),
-            body.encode(),
-            hashlib.sha256,
-        ).hexdigest()
-
-        if payload.get("type") == "payment_finished":
-            payment_id = payload.get("payment_id", "")
-            api_key = payload.get("metadata", {}).get("api_key", "")
-
-            if payment_id:
-                payment_store.mark_paid(payment_id)
-                if api_key:
-                    key_store.upgrade_key(api_key)
-
-            return {"status": "success"}
-
-        return {"status": "received"}
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    return {"status": "received"}

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Data Generator API | Realistic Mock Data for Dev & QA</title>
+    <meta name="description" content="Generate realistic test datasets instantly. 12+ schemas, 10+ locales, custom fields. Perfect for development, QA, and ML training.">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #0d6efd;
+            --secondary: #6c757d;
+            --dark: #1a1a1a;
+            --light: #f8f9fa;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .hero-section {
+            background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%);
+            color: white;
+            padding: 100px 0 80px;
+        }
+        .feature-card {
+            transition: transform 0.3s;
+            height: 100%;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .feature-card:hover { transform: translateY(-5px); }
+        .price-card {
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+        .price-card:hover { border-color: #0d6efd; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .price-card.featured { border-color: #0d6efd; background-color: #f8f9ff; position: relative; }
+        .price-card.featured .badge { position: absolute; top: -10px; right: 20px; }
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        .section-padding { padding: 80px 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="fas fa-database me-2"></i>Test Data Generator API</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/docs" target="_blank">Documentation</a></li>
+                    <li class="nav-item ms-2"><a class="btn btn-primary btn-sm px-3" href="/register">Get API Key</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section text-center">
+        <div class="container">
+            <h1 class="display-4 fw-bold mb-4">Generate Realistic Test Data in Seconds</h1>
+            <p class="lead mb-5 opacity-75">12+ schemas, 10+ locales, and custom field support. The ultimate API for developers, QA engineers, and ML researchers.</p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="/register" class="btn btn-light btn-lg px-4 fw-bold text-primary"><i class="fas fa-key me-2"></i>Get Free API Key</a>
+                <a href="https://tdd-api-4daf.onrender.com/docs" target="_blank" class="btn btn-outline-light btn-lg px-4"><i class="fas fa-book me-2"></i>View Docs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="section-padding bg-light">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Why Developers Choose Us</h2>
+                <p class="text-muted">Everything you need for high-quality mock data</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card feature-card p-4">
+                        <div class="text-primary fs-1 mb-3"><i class="fas fa-globe"></i></div>
+                        <h5 class="fw-bold">10+ Locales</h5>
+                        <p class="text-muted">Data localized for en_US, ru_RU, de_DE, fr_FR, ja_JP, and more.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card p-4">
+                        <div class="text-primary fs-1 mb-3"><i class="fas fa-shapes"></i></div>
+                        <h5 class="fw-bold">12 Schemas</h5>
+                        <p class="text-muted">Users, Transactions, Products, Medical Records, Banking, and more.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card feature-card p-4">
+                        <div class="text-primary fs-1 mb-3"><i class="fas fa-code"></i></div>
+                        <h5 class="fw-bold">Custom Fields</h5>
+                        <p class="text-muted">Define your own field types and structure perfectly for your app.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="section-padding">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Simple, Transparent Pricing</h2>
+                <p class="text-muted">Start free. Scale as you grow.</p>
+            </div>
+            <div class="row g-4 justify-content-center">
+                <!-- Free Tier -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card price-card h-100 p-4">
+                        <h4 class="fw-bold">Starter</h4>
+                        <h2 class="display-6 fw-bold">$0</h2>
+                        <p class="text-muted">Free forever</p>
+                        <hr>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>100 requests / day</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>12 Schemas</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>All Locales</li>
+                        </ul>
+                        <a href="/register" class="btn btn-outline-primary w-100">Get Key</a>
+                    </div>
+                </div>
+
+                <!-- Growth Tier -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card price-card featured h-100 p-4">
+                        <span class="badge bg-primary">MOST POPULAR</span>
+                        <h4 class="fw-bold">Growth</h4>
+                        <h2 class="display-6 fw-bold">$99</h2>
+                        <p class="text-muted">/month</p>
+                        <hr>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>200,000 requests / month</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Bulk Generation</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Priority Support</li>
+                        </ul>
+                        <a href="/pay" class="btn btn-primary w-100">Upgrade</a>
+                    </div>
+                </div>
+
+                <!-- Enterprise Tier -->
+                <div class="col-lg-3 col-md-6">
+                    <div class="card price-card h-100 p-4">
+                        <h4 class="fw-bold">Enterprise</h4>
+                        <h2 class="display-6 fw-bold">$299</h2>
+                        <p class="text-muted">/month</p>
+                        <hr>
+                        <ul class="list-unstyled mb-4">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Unlimited Requests</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>99.99% SLA Uptime</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Dedicated Support</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Custom Schemas</li>
+                        </ul>
+                        <a href="#enterprise-contact" class="btn btn-outline-primary w-100">Contact Sales</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="section-padding bg-dark text-white">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h2 class="fw-bold mb-4">Easy Integration</h2>
+                    <p class="opacity-75">Just one API call to generate realistic datasets in any format.</p>
+                    <div class="code-block mb-4">
+<pre>import requests
+
+headers = {"X-API-Key": "YOUR_KEY_HERE"}
+data = {
+    "schema_type": "users",
+    "count": 10,
+    "locale": "ru_RU"
+}
+
+response = requests.post(
+    "https://tdd-api-4daf.onrender.com/generate",
+    json=data,
+    headers=headers
+)
+
+print(response.json()["data"][0]["name"])
+# Output: "Иван Петров"</pre>
+                    </div>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <i class="fas fa-robot fa-10x opacity-25"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Enterprise Contact -->
+    <section id="enterprise-contact" class="section-padding bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 text-center">
+                    <h2 class="fw-bold mb-4">Need Custom Solutions?</h2>
+                    <p class="mb-4">We offer custom schema generation, dedicated infrastructure, and volume discounts for Enterprise clients.</p>
+                    <form id="contactForm" class="p-4 bg-white rounded shadow-sm">
+                        <div class="mb-3">
+                            <input type="email" class="form-control" placeholder="Your Work Email" required>
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" rows="4" placeholder="Tell us about your needs..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Request Access</button>
+                    </form>
+                    <p class="text-muted small mt-3">Or email us directly: <a href="mailto:support@tdg-api.com">support@tdg-api.com</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 text-center">
+        <div class="container">
+            <p class="mb-0">&copy; 2026 Test Data Generator API. All rights reserved.</p>
+            <small class="text-muted">Crypto Payments accepted (USDT TRC20)</small>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you! Our team will contact you shortly.');
+        });
+    </script>
+</body>
+</html>
